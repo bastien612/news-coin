@@ -4,5 +4,11 @@
   "type": "ionic-angular",
   "integrations": {
     "cordova": {}
-  }
+  },
+  "proxies": [
+    {
+      "path": "/binanceList",
+      "proxyUrl": "https://support.binance.com/hc/en-us/articles/115003950952"
+    }
+  ]
 }
