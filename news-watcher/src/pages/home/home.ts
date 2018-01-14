@@ -1,3 +1,5 @@
+import { EmailProvider } from './../../providers/email/email';
+import { NativeAudio } from '@ionic-native/native-audio';
 import { BinanceDataProvider } from './../../providers/binance-data/binance-data';
 import { Component } from '@angular/core';
 import { NavController } from 'ionic-angular';
@@ -11,7 +13,7 @@ export class HomePage {
 
   articles: Array<string> = [];
 
-  constructor(public navCtrl: NavController, public binanceDataProvider: BinanceDataProvider) {
+  constructor(public navCtrl: NavController, public binanceDataProvider: BinanceDataProvider, public emailProvider:EmailProvider, public nativeAudio:NativeAudio) {
     this.binanceDataProvider.getBinanceNewsList().subscribe(response => this.extractList(response), error => this.initList(error));
   }
 
@@ -57,6 +59,7 @@ export class HomePage {
       console.log("Found element : " + title);
     } else {
       this.articles.push(title);
+      this.playSound();
       console.log("not found : " + title);
     }
   }
@@ -86,5 +89,22 @@ export class HomePage {
 
   error(response){
     console.log("une erreur s'est produite.");
+  }
+
+  sendEmail() {
+    this.emailProvider.sendEmail("coucou");
+  }
+
+  playSound() {
+    this.nativeAudio.preloadSimple('alarm', "../../assets/alarm.mp3")
+    .then(() => this.nativeAudio.loop("alarm")
+      .then(() => console.log("ok")
+    ));
+  }
+
+  stopSound() {
+    this.nativeAudio.stop("alarm")
+      .then(() => console.log("ok")
+    );
   }
 }
