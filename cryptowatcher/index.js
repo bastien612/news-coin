@@ -1,94 +1,122 @@
 var binanceListUrl = "https://cors-anywhere.herokuapp.com/support.binance.com/hc/en-us/sections/115000106672-New-Listings";
-var articles = [];
+var kucoinListUrl = "https://cors-anywhere.herokuapp.com/news.kucoin.com/en/category/announcements/";
+var articlesBinance = [];
+var articlesKucoin = [];
 var truc = false;
 
-var refreshIntervalId = undefined;
-
-/* later */
-clearInterval(refreshIntervalId);
+var binanceRefreshIntervalId = undefined;
+var kucoinRefreshIntervalId = undefined;
 
 $(document).ready(function () {
-	// console.log("ready !");
 	$.get(binanceListUrl, function (response) {
-		// console.log("ok");
-		initList(response);
-	}, );
+		initList(response, binanceHtmlParser);
+	});
+
+	$.get(kucoinListUrl, function (response) {
+		initList(response, kucoinHtmlParser);
+	});
+
+	binanceRefreshIntervalId = setInterval(watchBinance, 10000)
+	kucoinRefreshIntervalId = setInterval(watchKucoin, 10000)
 })
 
-function watchBinance() {
-	refreshIntervalId = setInterval(testNewCurrencyBinance, 10000)
-}
-
-function stopWatching() {
-	clearInterval(refreshIntervalId);
-}
-
-function testNewCurrencyBinance() {
-	console.log("test");
-	$.get(binanceListUrl, function (response) {
-		// console.log("ok");
-		handleHtml(response);
-	}, );
-}
-
-function handleHtml(htmlString) {
-
-	let dom = $('<p id="truc">coucou</p>').append($.parseHTML(htmlString));
-
-	let articlesList = $('ul:first', dom);
-
-	let listLength = $('ul:first li', dom).length;
-
-	let i = 0;
-	for (i = 0; i < listLength; i++) {
-		let e = $("li:first", articlesList);
-		compareElement(e.text().trim());
-		e.remove();
-	}
-}
-
-function compareElement(title) {
-	let index = articles.indexOf(title);
+function compareElement(title, list) {
+	let index = list.indexOf(title);
+	let isNewElement = false;
 
 	if (index > - 1) {
 		// console.log("Found element : " + title);
 	} else {
-		articles.push(title);
-		playSound();
+		list.push(title);
+		isNewElement = true;
 		// console.log("not found : " + title);
 	}
+
+	return isNewElement;
 }
 
-function initList(response) {
-
-	let htmlString = response;
-
+function initList(htmlString, htmlParser) {
 	let dom = $('<p id="truc">coucou</p>').append(jQuery.parseHTML(htmlString));
+	htmlParser(dom);
+}
 
+/* binance */
+function watchBinance() {
+	console.log("Watch Binance");
+	$.get(binanceListUrl, function (response) {
+		handleHtml(response, binanceHtmlParser);
+	});
+}
+
+
+function stopWatchingBinance() {
+	clearInterval(binanceRefreshIntervalId);
+}
+
+function binanceHtmlParser(dom) {
 	let articlesList = $('ul:first', dom);
 	let listLength = $('ul:first li', dom).length;
+	let isNewElement;
 
 	let i = 0;
 	for (i = 0; i < listLength; i++) {
 		let e = $("li:first", articlesList);
-		articles.push(e.text().trim());
+		isNewElement = compareElement(e.text().trim(), articlesBinance);
 		e.remove();
+	}
+
+	return isNewElement;
+}
+
+/* kucoin */
+function watchKucoin() {
+	console.log("Watch Kucoin")
+	$.get(kucoinListUrl, function (response) {
+		handleHtml(response, kucoinHtmlParser);
+	});
+}
+
+
+function stopWatchingKucoin() {
+	clearInterval(kucoinRefreshIntervalId);
+}
+
+function kucoinHtmlParser(dom) {
+	let isNewElement = false;
+	let articlesList = $('.post-title', dom);
+
+	let listLength = articlesList.length;
+
+	let i = 0;
+	for(i = 0; i<listLength; i++) {
+		let e = $(".post-title:eq(" + i + ")", dom).text().trim();
+		isNewElement = compareElement(e, articlesKucoin);
+	}
+
+	return isNewElement;
+}
+
+/* Generic */
+function handleHtml(html, htmlParser) {
+	let isNew = htmlParser(html);
+	if (isNew) {
+		sendAlert();
 	}
 }
 
-
 function sendEmail() {
-	alert("send email not implemented")
+	$.get("http://localhost:9876/news", function (response) { 
+			console.log("Mail send" + response);
+		});
 }
 
 function playSound() {
-	// console.log("truc " + truc);
 	truc = true;
-	
+
 	var alarm = document.getElementById("alarme");
 
-	alarm.addEventListener('ended', function() {
-		if(truc) {
+	alarm.addEventListener('ended', function () {
+		if (truc) {
 			this.play();
 		}
 	}, false);
@@ -97,6 +125,11 @@ function playSound() {
 }
 
 function stopSound() {
-	// console.log("truc " + truc);
 	truc = false;
+}
+
+function sendAlert() {
+	console.log("alert !");
+	playSound();
+	sendEmail();
 }
