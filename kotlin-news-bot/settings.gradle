@@ -1,0 +1,3 @@
+rootProject.name = 'crypto-bot'
+rootProject.buildFileName = 'build.gradle.kts'
+
