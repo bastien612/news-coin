@@ -1,42 +1,49 @@
 package watcher
 
+import email.EmailSender
 import htmlparser.HtmlParser
-import java.net.HttpURLConnection
-import java.net.URL
-import java.net.URLConnection
-import java.io.InputStreamReader
-import java.io.BufferedReader
-import com.sun.xml.internal.ws.streaming.XMLStreamReaderUtil.close
-import jdk.nashorn.internal.runtime.ScriptingFunctions.readLine
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
+import org.jsoup.select.Elements
+import java.util.*
 
 
-class Watcher(urlString: String, parser: HtmlParser) {
-    val urlString=urlString;
+class Watcher (private val urlString: String, private val parser: HtmlParser) : TimerTask() {
 
-    fun watch() {
-        /*val con: HttpURLConnection = url.openConnection() as HttpURLConnection
+    private var titlesArray: MutableList<String> = mutableListOf()
 
-        con.setRequestMethod("GET")
-
-        con.setRequestProperty("", "");
-
-        val responseCode = con.responseCode
-
-        if (responseCode != 200) {
-            println("Erreur HTTP. code = $responseCode")
-            return
-        }*/
-        Jsoup.connect(urlString).get()
+    init {
+        fillArray()
     }
 
-    /*fun extractHTML(con:HttpURLConnection) {
-        val input = BufferedReader(InputStreamReader(con.inputStream))
+    override fun run() {
+        println("Run ! ")
+        val output:String = fillArray()
 
-        val response:String
+        if(output != ""){
+            alert(output)
+        }
+    }
 
-        response = input.use{it.readText()}
+    private fun fillArray() :String{
+        val doc: Document= Jsoup.connect(urlString).get()
 
-    Jsoup.
-    }*/
+        val elements:Elements = doc.body().select("ul > li")
+
+        var output = ""
+
+        elements.map({element ->
+            if(!titlesArray.contains(element.text().trim())) {
+                titlesArray.add(element.text().trim())
+                output = element.text().trim()
+            }
+        })
+
+        return output
+    }
+
+    private fun alert(title:String) {
+        println("Un nouvel élément ! : " + title)
+        EmailSender().sendEmail(title, "Un article vient d'être ajouté sur binance. Son titre : " + title + "\n Visite immédiatement l'url : " + urlString)
+    }
 }

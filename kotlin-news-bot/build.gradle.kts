@@ -5,10 +5,11 @@ version = "1.0-SNAPSHOT"
 
 buildscript {
     var kotlin_version: String by extra
-    kotlin_version = "1.2.20"
+    kotlin_version = "1.2.21"
 
     repositories {
         mavenCentral()
+        jcenter()
     }
 
     dependencies {
@@ -22,7 +23,8 @@ apply {
     plugin("kotlin")
 }
 
-val kotlin_version: String by extra
+var kotlin_version: String by extra
+kotlin_version = "1.2.21"
 
 repositories {
     mavenCentral()
@@ -31,6 +33,7 @@ repositories {
 dependencies {
     compile(kotlinModule("stdlib-jdk8", kotlin_version))
     compile("org.jsoup", "jsoup", "1.7.2")
+    compile("org.apache.commons", "commons-email", "1.1")
 
     testCompile("junit", "junit", "4.12")
 }
