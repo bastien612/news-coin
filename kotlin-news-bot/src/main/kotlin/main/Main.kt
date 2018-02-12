@@ -13,5 +13,6 @@ fun main(args: Array<String>) {
     val timer = Timer()
 
     println("Start watching")
-    timer.schedule(watcher, 0, 5000)
+    System.out.flush()
+    timer.schedule(watcher, 0, 10000)
 }
